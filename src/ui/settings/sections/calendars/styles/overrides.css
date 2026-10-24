@@ -263,6 +263,7 @@
   --fc-highlight-color: var(--text-highlight-bg);
   --fc-bg-event-color: var(--background-modifier-success);
   --fc-non-business-color: var(--background-modifier-box-shadow);
+  --fc-small-font-size: var(--font-adaptive-normal);
 }
 
 .ofc-calendar-shell .fc .fc-bg-event,
@@ -297,6 +298,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 1em;
 }
 
 .ofc-calendar-shell .fc .ofc-toolbar-search-host,
@@ -1209,6 +1211,7 @@
 .is-phone .fc .fc-toolbar.fc-header-toolbar .fc-toolbar-title {
   font-size: 1.2rem;
   font-weight: 600;
+  font-size: 1em;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1789,4 +1792,9 @@
 .ofc-calendar-shell .fc .fc-daygrid-dot-event:not(.ofc-event-current-or-next),
 .ofc-embedded-calendar-container .fc .fc-daygrid-dot-event:not(.ofc-event-current-or-next) {
   color: var(--b0);
+}
+
+.ofc-calendar-shell .fc .fc-daygrid-event,
+.ofc-embedded-calendar-container .fc .fc-daygrid-event {
+  font-size: var(--font-adaptive-normal);
 }

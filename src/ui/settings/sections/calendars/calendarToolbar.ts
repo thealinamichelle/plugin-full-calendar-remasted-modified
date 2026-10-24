@@ -22,7 +22,12 @@ export type ToolbarLayout = {
 };
 
 export type TimeGridDayHeaderFormat =
-  'ddmm-day' | 'mmdd-day' | 'day-ddmm' | 'day-mmdd' | 'ddmmyyyy-day' | 'mmddyyyy-day';
+  | 'ddmm-day'
+  | 'mmdd-day'
+  | 'day-ddmm'
+  | 'day-mmdd'
+  | 'ddmmyyyy-day'
+  | 'mmddyyyy-day';
 
 export type ViewSpec = {
   type: string;
@@ -118,7 +123,18 @@ export function getToolbarLayout(
     if (['prev', 'next', 'prevYear', 'nextYear', 'today', 'title'].includes(name)) {
       return true;
     }
-    if (['views', 'search', 'navigate', 'more'].includes(name)) {
+    if (
+      [
+        'views',
+        'search',
+        'navigate',
+        'more',
+        'dayGridMonth',
+        'timeGridWeek',
+        'timeGridDay',
+        'listWeek'
+      ].includes(name)
+    ) {
       return true;
     }
     if (name === 'timeline') {
@@ -167,7 +183,10 @@ export function getToolbarLayout(
     };
   }
 
-  const fullDesktopViewGroup = ['views', showResourceViews ? 'timeline' : null]
+  const fullDesktopViewGroup = [
+    'dayGridMonth,timeGridWeek,timeGridDay,listWeek',
+    showResourceViews ? 'timeline' : null
+  ]
     .filter(Boolean)
     .join(',');
 
