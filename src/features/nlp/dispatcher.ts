@@ -161,20 +161,6 @@ export async function dispatchNLPAction(action: NLPActionObject): Promise<void> 
     return;
   }
 
-  if (action.intent === 'OPEN_CHRONO') {
-    if (PluginState.isMobile()) {
-      showNotice(t('notices.chronoAnalyserMobileDisabled'));
-      return;
-    }
-    const plugin = PluginState.getPlugin();
-    const { ANALYSIS_VIEW_TYPE } = await import('../../chrono_analyser/AnalysisView');
-    await plugin.app.workspace.getLeaf('tab').setViewState({
-      type: ANALYSIS_VIEW_TYPE,
-      active: true
-    });
-    return;
-  }
-
   if (action.intent === 'SHOW_CHANGELOG') {
     PluginState.showChangelog();
     showNotice(t('nlp.parseSuccess'));

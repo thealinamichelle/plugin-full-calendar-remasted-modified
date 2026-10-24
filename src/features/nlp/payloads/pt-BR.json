@@ -57,14 +57,6 @@
       ]
     },
     {
-      "name": "open_chrono",
-      "regex": "^(?:open|show|launch)\\s+(?:the\\s+)?(?:chrono|analyser|analyzer|analysis|insights)\\b",
-      "flags": "i",
-      "actions": [
-        "SET_INTENT(OPEN_CHRONO)"
-      ]
-    },
-    {
       "name": "show_changelog",
       "regex": "^(?:show|open|view)\\s+(?:the\\s+)?(?:changelog|what'?s\\s+new|release\\s+notes)\\b",
       "flags": "i",

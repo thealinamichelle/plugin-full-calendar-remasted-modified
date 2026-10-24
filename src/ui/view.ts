@@ -353,10 +353,6 @@ export class CalendarView extends ItemView implements ViewContext {
                 click: (ev?: MouseEvent) => {
                   if (ev) this.uiHandler.showWorkspaceSwitcher(ev);
                 }
-              },
-              analysis: {
-                text: t('ui.view.buttons.analysis'),
-                click: () => this.uiHandler.activateChronoAnalyser()
               }
             },
             eventClick: info => {

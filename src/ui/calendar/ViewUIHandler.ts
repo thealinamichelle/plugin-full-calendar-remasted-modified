@@ -1,4 +1,3 @@
-import { showNotice } from '../../utils/showNotice';
 import { Menu } from 'obsidian';
 import { PluginState } from '../../core/PluginState';
 import { t } from '../../features/i18n/i18n';
@@ -72,19 +71,5 @@ export class ViewUIHandler {
     this.workspaceSwitchTimeout = window.setTimeout(() => {
       void this.ctx.refreshView();
     }, 100);
-  }
-
-  public async activateChronoAnalyser(): Promise<void> {
-    if (PluginState.isMobile()) {
-      showNotice(t('ui.view.errors.chronoAnalyserDesktopOnly'));
-      return;
-    }
-    try {
-      const { activateAnalysisView } = await import('../../chrono_analyser/AnalysisView');
-      await activateAnalysisView(this.ctx.app);
-    } catch (err) {
-      console.error('Full Calendar: Failed to activate Chrono Analyser view', err);
-      showNotice(t('ui.view.errors.chronoAnalyserFailed'));
-    }
   }
 }

@@ -161,7 +161,7 @@ export function getToolbarLayout(
       headerToolbar: {
         left: filterToolbarString('prev,today,next search'),
         center: 'title',
-        right: filterToolbarString('analysis more')
+        right: filterToolbarString('more')
       },
       footerToolbar: false
     };
@@ -176,7 +176,7 @@ export function getToolbarLayout(
     headerToolbar: {
       left: filterToolbarString('workspace prev,today,navigate,next search'),
       center: 'title',
-      right: filterToolbarString(`analysis ${fullDesktopViewGroup}`)
+      right: filterToolbarString(fullDesktopViewGroup)
     },
     footerToolbar: false
   };

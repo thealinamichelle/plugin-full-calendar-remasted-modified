@@ -6,7 +6,6 @@ export type NLPIntent =
   | 'OPEN_CALENDAR'
   | 'OPEN_SIDEBAR'
   | 'OPEN_SETTINGS'
-  | 'OPEN_CHRONO'
   | 'SHOW_CHANGELOG'
   | 'SHOW_MILESTONES'
   | 'RESET_CACHE'

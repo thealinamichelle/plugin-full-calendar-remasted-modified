@@ -1,5 +1,4 @@
 import { App } from 'obsidian';
-// import { refreshCachedChronoDemoAsset } from '../../chrono_analyser/data/demoRemoteAsset';
 import { refreshCurrentI18nLocaleForVersionUpdate } from '../i18n/i18n';
 import { refreshCurrentNLPPayloadForVersionUpdate } from '../nlp/loader';
 // import { downloadMilestoneTemplate } from '../milestones/monthlyReport';

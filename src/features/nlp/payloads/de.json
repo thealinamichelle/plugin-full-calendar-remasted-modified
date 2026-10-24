@@ -57,14 +57,6 @@
       ]
     },
     {
-      "name": "open_chrono",
-      "regex": "^(?:öffne|zeige|starte)\\s+(?:den\\s+)?(?:chrono|analysator|analyzer|analyse|insights)\\b",
-      "flags": "i",
-      "actions": [
-        "SET_INTENT(OPEN_CHRONO)"
-      ]
-    },
-    {
       "name": "show_changelog",
       "regex": "^(?:zeige|öffne)\\s+(?:das\\s+)?(?:änderungsprotokoll|changelog|was\\s+ist\\s+neu|versionshinweise)\\b",
       "flags": "i",

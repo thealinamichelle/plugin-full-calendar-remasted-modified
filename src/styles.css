@@ -732,7 +732,6 @@
 .full-calendar-initial-setup-notice a,
 .ofc-settings-modal-shell .setting-item-description a,
 .activitywatch-settings-shell .setting-item-description a,
-.chrono-analyser-modal .setting-item-description a,
 .ofc-availability-share-modal .setting-item-description a,
 a.ofc-doc-link,
 a.ofc-holiday-doc-link {
@@ -748,7 +747,6 @@ a.ofc-holiday-doc-link {
 .full-calendar-initial-setup-notice a:visited,
 .ofc-settings-modal-shell .setting-item-description a:visited,
 .activitywatch-settings-shell .setting-item-description a:visited,
-.chrono-analyser-modal .setting-item-description a:visited,
 .ofc-availability-share-modal .setting-item-description a:visited,
 a.ofc-doc-link:visited,
 a.ofc-holiday-doc-link:visited {
@@ -761,7 +759,6 @@ a.ofc-holiday-doc-link:visited {
 .full-calendar-initial-setup-notice a:hover,
 .ofc-settings-modal-shell .setting-item-description a:hover,
 .activitywatch-settings-shell .setting-item-description a:hover,
-.chrono-analyser-modal .setting-item-description a:hover,
 .ofc-availability-share-modal .setting-item-description a:hover,
 a.ofc-doc-link:hover,
 a.ofc-holiday-doc-link:hover {
@@ -775,7 +772,6 @@ a.ofc-holiday-doc-link:hover {
 .full-calendar-initial-setup-notice a:focus-visible,
 .ofc-settings-modal-shell .setting-item-description a:focus-visible,
 .activitywatch-settings-shell .setting-item-description a:focus-visible,
-.chrono-analyser-modal .setting-item-description a:focus-visible,
 .ofc-availability-share-modal .setting-item-description a:focus-visible,
 a.ofc-doc-link:focus-visible,
 a.ofc-holiday-doc-link:focus-visible {

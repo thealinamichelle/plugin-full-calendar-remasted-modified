@@ -46,8 +46,6 @@ function getIntentLabel(intent: string): string {
       return t('nlp.intents.OPEN_SIDEBAR');
     case 'OPEN_SETTINGS':
       return t('nlp.intents.OPEN_SETTINGS');
-    case 'OPEN_CHRONO':
-      return t('nlp.intents.OPEN_CHRONO');
     case 'SHOW_CHANGELOG':
       return t('nlp.intents.SHOW_CHANGELOG');
     case 'SHOW_MILESTONES':
@@ -73,8 +71,6 @@ function getIntentDescription(intent: string): string | null {
   switch (intent) {
     case 'OPEN_SETTINGS':
       return t('nlp.descriptions.OPEN_SETTINGS');
-    case 'OPEN_CHRONO':
-      return t('nlp.descriptions.OPEN_CHRONO');
     case 'SHOW_CHANGELOG':
       return t('nlp.descriptions.SHOW_CHANGELOG');
     case 'SHOW_MILESTONES':

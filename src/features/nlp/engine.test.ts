@@ -527,21 +527,6 @@ describe('NLP engine', () => {
       expect(result.matchedRules).toEqual(['open_settings']);
     });
 
-    it('short-circuits on OPEN_CHRONO', () => {
-      const now = new Date('2026-05-07T10:00:00');
-      const result = processNaturalLanguage('open chrono', payloadEn, now);
-
-      expect(result.intent).toBe('OPEN_CHRONO');
-      expect(result.title).toBe('');
-    });
-
-    it('recognizes "show analyser"', () => {
-      const now = new Date('2026-05-07T10:00:00');
-      const result = processNaturalLanguage('show analyser', payloadEn, now);
-
-      expect(result.intent).toBe('OPEN_CHRONO');
-    });
-
     it('short-circuits on SHOW_CHANGELOG', () => {
       const now = new Date('2026-05-07T10:00:00');
       const result = processNaturalLanguage('show changelog', payloadEn, now);

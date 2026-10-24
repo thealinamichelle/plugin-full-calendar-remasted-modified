@@ -471,7 +471,12 @@ export async function renderCalendar(
           eventMouseOver(event, el, mouseEvent);
         });
       }
-      const eventColor = event.backgroundColor || event.borderColor || '';
+      const dot = el.querySelector<HTMLElement>('.fc-daygrid-event-dot');
+      const eventColor =
+        dot?.style.borderColor ||
+        event.backgroundColor ||
+        event.borderColor ||
+        '';
       if (eventColor) {
         el.style.setProperty('--event-color', eventColor);
       }

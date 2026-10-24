@@ -1,8 +1,4 @@
 import { CalendarInfo } from './calendar_settings';
-// Import lazily-referenced type for chrono analyser configuration.
-// Placed inside a type-only import to avoid pulling heavy modules at runtime here.
-
-import type { InsightsConfig } from '../chrono_analyser/ui/ui';
 
 export interface TriggerRule {
   id: string;
@@ -182,7 +178,6 @@ export interface FullCalendarSettings {
   displayTimezone: string | null;
   lastSystemTimezone: string | null;
   enableAdvancedCategorization: boolean;
-  chrono_analyser_config: InsightsConfig | null;
   categorySettings: { name: string; color: string }[];
   useCustomGoogleClient: boolean;
   googleClientId: string;
@@ -315,7 +310,6 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
   displayTimezone: null,
   lastSystemTimezone: null,
   enableAdvancedCategorization: false,
-  chrono_analyser_config: null,
   categorySettings: [],
   useCustomGoogleClient: false,
   googleClientId: '',

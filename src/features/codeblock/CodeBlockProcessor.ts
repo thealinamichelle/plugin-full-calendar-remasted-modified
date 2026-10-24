@@ -351,7 +351,6 @@ export function resolveStrategy(config: Record<string, unknown>): string {
     const t = typeVal.toLowerCase();
     if (t === 'calendar') return 'calendar';
     if (t === 'weather') return 'weather';
-    if (t === 'analysis' || t === 'chart') return 'analysis';
     if (t === 'backlog' || t === 'task-backlog') return 'backlog';
   }
 
@@ -370,18 +369,6 @@ export async function getOrLoadStrategy(
   const strategy = EmbeddedBlockRegistry.get(strategyName);
   if (strategy) {
     return strategy;
-  }
-
-  if (strategyName === 'analysis') {
-    try {
-      const { registerChronoAnalysisStrategy } =
-        await import('../../chrono_analyser/AnalysisWidgetStrategy');
-      registerChronoAnalysisStrategy(plugin);
-      return EmbeddedBlockRegistry.get('analysis') || null;
-    } catch (e) {
-      console.error('Failed to lazy load AnalysisWidgetStrategy:', e);
-      return null;
-    }
   }
 
   if (strategyName === 'weather') {

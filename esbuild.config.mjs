@@ -96,7 +96,7 @@ async function build() {
                 console.warn("⚠️ Terser minification failed:", err);
               }
             }
-            const devEnvDir = "obsidian-dev-vault/.obsidian/plugins/full-calendar-remastered";
+            const devEnvDir = "obsidian-dev-vault/.obsidian/plugins/full-calendar-remastered-custom";
             const oldCssPath = path.join(rootDir, "main.css");
             const newCssPath = path.join(rootDir, "styles.css");
 

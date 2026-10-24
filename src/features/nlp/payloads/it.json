@@ -57,14 +57,6 @@
       ]
     },
     {
-      "name": "open_chrono",
-      "regex": "^(?:apri|mostra|lancia)\\s+(?:il\\s+)?(?:chrono|analizzatore|analyzer|analisi|insights)\\b",
-      "flags": "i",
-      "actions": [
-        "SET_INTENT(OPEN_CHRONO)"
-      ]
-    },
-    {
       "name": "show_changelog",
       "regex": "^(?:mostra|apri|vedi)\\s+(?:il\\s+)?(?:registro\\s+modifiche|changelog|novità|note\\s+di\\s+rilascio)\\b",
       "flags": "i",

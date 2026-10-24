@@ -325,18 +325,6 @@ export default class FullCalendarPlugin extends Plugin {
 
     this.registerView(FULL_CALENDAR_SIDEBAR_VIEW_TYPE, leaf => new CalendarView(leaf, this, true));
 
-    if (!this.#isMobile) {
-      // Lazily import the view to avoid loading plotly on mobile.
-      import('./chrono_analyser/AnalysisView')
-        .then(({ AnalysisView, ANALYSIS_VIEW_TYPE }) => {
-          this.registerView(ANALYSIS_VIEW_TYPE, leaf => new AnalysisView(leaf, this));
-        })
-        .catch(err => {
-          console.error('Full Calendar: Failed to load Chrono Analyser view', err);
-          showNotice(t('notices.chronoAnalyserLoadFailed'));
-        });
-    }
-
     // Register the calendar icon on left-side bar
     this.addRibbonIcon('calendar-glyph', t('ribbon.openCalendar'), async (_: MouseEvent) => {
       await PluginState.getInternalAPI().openCalendar();
@@ -451,16 +439,6 @@ export default class FullCalendarPlugin extends Plugin {
         void PluginState.getInternalAPI().openCalendar();
       }
     });
-
-    if (this.#isMobile) {
-      this.addCommand({
-        id: 'full-calendar-open-analysis-mobile-disabled',
-        name: t('commands.openChronoAnalyser'),
-        callback: () => {
-          showNotice(t('notices.chronoAnalyserMobileDisabled'));
-        }
-      });
-    }
 
     this.addCommand({
       id: 'full-calendar-open-sidebar',
