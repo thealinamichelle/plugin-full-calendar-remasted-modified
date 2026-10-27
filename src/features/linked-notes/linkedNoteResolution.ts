@@ -12,8 +12,8 @@ export function titleBasedLinkedNotePath(directory: string, event: OFCEvent): st
 /** Resolves name-based note identity without creating or modifying a file. */
 export function getNameBasedLinkedNoteFile(app: App, event: OFCEvent): TFile | null {
   const settings = PluginState.getSettings();
-  const directory = settings.linkedNotesDirectory?.trim();
-  if (settings.linkedNoteLinkStrategy !== 'name' || !directory) {
+  const directory = settings.linkedNotesDirectory?.trim() ?? '';
+  if (settings.linkedNoteLinkStrategy !== 'name') {
     return null;
   }
 

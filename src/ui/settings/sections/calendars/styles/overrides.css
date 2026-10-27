@@ -1798,3 +1798,33 @@
 .ofc-embedded-calendar-container .fc .fc-daygrid-event {
   font-size: var(--font-adaptive-normal);
 }
+/*=============================================================*/
+/* NEW OVERRIDES */
+/*=============================================================*/
+/* Make the entire calendar scroll vertically */
+.fc .fc-view-harness {
+  overflow-y: auto !important;
+}
+
+/* Disable individual section scrolling */
+.fc .fc-timegrid .fc-scroller {
+  overflow-y: visible !important;
+}
+
+.fc .fc-timegrid .fc-scroller-liquid-absolute {
+  position: relative !important;
+  inset: auto !important;
+}
+
+a.fc-event.fc-event-draggable.fc-event-resizable.fc-event-start.fc-event-end.fc-event-future.fc-daygrid-event.fc-daygrid-block-event.fc-h-event,
+.ofc-calendar-shell .fc-daygrid-event-harness input[type='checkbox'] {
+  text-wrap: auto;
+}
+
+.fc-daygrid-block-event .fc-event-title,
+.fc-daygrid-block-event .fc-event-title-container {
+  white-space: normal !important;
+  overflow: visible !important;
+  /*text-overflow: clip !important;*/
+  max-height: none !important;
+}

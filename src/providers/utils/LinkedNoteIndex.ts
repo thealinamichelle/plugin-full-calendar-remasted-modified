@@ -18,11 +18,6 @@ export class LinkedNoteIndex {
   }
 
   private scanDirectory(): TFile[] {
-    const dir = this.getDirectory().trim();
-    if (!dir) {
-      return [];
-    }
-
     const unresolvedFiles: TFile[] = [];
     const files = this.app.vault.getMarkdownFiles();
 
@@ -293,7 +288,7 @@ export class LinkedNoteIndex {
 
   private isFileInDirectory(file: TFile): boolean {
     const dir = this.getDirectory().trim();
-    if (!dir) return false;
+    if (!dir) return file.parent?.path === '/' || !file.path.includes('/');
     // Normalize paths
     const normalizedDir = dir.replace(/\/$/, '');
     return file.path.startsWith(`${normalizedDir}/`);
@@ -301,11 +296,6 @@ export class LinkedNoteIndex {
 
   public initialize(): void {
     this.destroy();
-    const dir = this.getDirectory().trim();
-    if (!dir) {
-      return;
-    }
-
     const activeRevision = this.revision;
     const unresolvedFiles = this.scanDirectory();
 

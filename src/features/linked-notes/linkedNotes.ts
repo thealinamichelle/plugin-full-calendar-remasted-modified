@@ -104,8 +104,7 @@ export async function createLinkedNoteForProvider({
   templateContentOverride?: string;
 }): Promise<TFile | null> {
   const identityInstanceDate = linkedNoteIdentityInstanceDate(event, instanceDate);
-  const directory = PluginState.getSettings().linkedNotesDirectory;
-  if (isNameBasedLinkedNotes() && directory) {
+  if (isNameBasedLinkedNotes()) {
     const titleFile = await linkExistingTitleFile(app, event, calendarId);
     if (titleFile) {
       return titleFile;
@@ -163,11 +162,6 @@ async function createLinkedNoteFile({
 }): Promise<TFile | null> {
   const settings = PluginState.getSettings();
   const directory = settings.linkedNotesDirectory;
-  if (!directory) {
-    showNotice(t('notices.configureLinkedNotesDirFirst'));
-    return null;
-  }
-
   const template =
     templateContentOverride !== undefined
       ? templateContentOverride
@@ -221,12 +215,8 @@ export async function openOrCreateLinkedNote(
     return;
   }
 
-  // 1. Check if a directory is set
+  // Vault Root is represented by an empty linked-notes directory.
   const settings = PluginState.getSettings();
-  if (!settings.linkedNotesDirectory) {
-    showNotice(t('notices.configureLinkedNotesDirFirst'));
-    return;
-  }
 
   // 2. Check if note already exists
   if (isNameBasedLinkedNotes()) {
