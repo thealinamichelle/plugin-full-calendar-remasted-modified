@@ -230,6 +230,8 @@ export interface FullCalendarSettings {
   milestoneNotifierDuration?: number;
 
   currentVersion: string | null;
+  /** Local Obsidian note paths keyed by Google Tasks source ID and task UID. */
+  googleTaskLocalNoteLinks?: Record<string, string>;
   linkedNotesDirectory: string;
   linkedNoteTemplate: string;
   enableLinkedNoteTemplatesPreset: boolean;
@@ -383,6 +385,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
   enableDefaultReminder: true,
   defaultReminderMinutes: 10,
   currentVersion: null,
+  googleTaskLocalNoteLinks: {},
   linkedNotesDirectory: '',
   linkedNoteLinkStrategy: 'deadline',
   taskBacklogLastProviderId: '',

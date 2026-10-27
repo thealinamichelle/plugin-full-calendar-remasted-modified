@@ -14,6 +14,7 @@ import { showNotice } from './utils/showNotice';
  */
 
 import { PluginState } from './core/PluginState';
+import { updateGoogleTaskLocalLinksAfterRename } from './features/linked-notes/googleTaskLocalLinks';
 import { NotificationManager } from './features/notifications/NotificationManager';
 import { FcrReminderManager } from './features/fcr_reminder/FcrReminderManager';
 import { StatusBarManager } from './features/statusbar/StatusBarManager';
@@ -277,6 +278,13 @@ export default class FullCalendarPlugin extends Plugin {
       }
       return pairs;
     };
+
+    // Keep the local Google Task note links current without touching any task/event.
+    this.registerEvent(
+      this.app.vault.on('rename', (file, oldPath) => {
+        void updateGoogleTaskLocalLinksAfterRename(oldPath, file.path);
+      })
+    );
 
     this.registerEvent(
       this.app.vault.on('rename', (file, oldPath) => {

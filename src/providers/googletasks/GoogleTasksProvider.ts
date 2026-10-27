@@ -117,7 +117,9 @@ export class GoogleTasksProvider
     this.plugin = plugin;
     this.source = source;
     this.authManager = new GoogleAuthManager(plugin);
-    this.linkedNoteIndex = new LinkedNoteIndex(plugin.app, source.id);
+    // Associations are local to Obsidian and survive moving notes between class folders.
+    // This does not write links or completion changes to Google Tasks.
+    this.linkedNoteIndex = new LinkedNoteIndex(plugin.app, source.id, true);
   }
 
   initialize(): void {
@@ -190,12 +192,9 @@ export class GoogleTasksProvider
           const validated = validateEvent(event);
           if (!validated) return null;
 
-          const linkedFile = this.linkedNoteIndex.resolveLinkedFile(validated);
-          const location = linkedFile
-            ? { file: { path: linkedFile.path }, lineNumber: undefined }
-            : null;
-
-          return [validated, location];
+          // A Google Task is a remote record, never a vault-file event.
+          // Local note links live only in plugin settings and cannot affect task presence.
+          return [validated, null];
         })
         .filter((e): e is [OFCEvent, EventLocation | null] => e !== null);
 
@@ -321,23 +320,19 @@ export class GoogleTasksProvider
       const token = await this.getToken();
       if (!token) return false;
 
-      const getUrl = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(this.source.listId)}/tasks/${encodeURIComponent(taskUid)}`;
-      const task = await makeAuthenticatedRequest<GoogleTaskApiItem>(token, getUrl);
-
-      task.status = isDone ? 'completed' : 'needsAction';
-      if (isDone) {
-        task.completed = DateTime.now().toISO();
-      } else {
-        task.completed = undefined;
-      }
-
-      const putUrl = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(this.source.listId)}/tasks/${encodeURIComponent(taskUid)}`;
-      await makeAuthenticatedRequest(token, putUrl, 'PUT', task);
+      // Only send completion properties to Google. Never include note links,
+      // titles, descriptions, due dates, or any other task attributes.
+      const completedAt = isDone ? DateTime.now().toISO() : null;
+      const url = `https://tasks.googleapis.com/tasks/v1/lists/${encodeURIComponent(this.source.listId)}/tasks/${encodeURIComponent(taskUid)}`;
+      const task = await makeAuthenticatedRequest<GoogleTaskApiItem>(token, url, 'PATCH', {
+        status: isDone ? 'completed' : 'needsAction',
+        completed: completedAt
+      });
 
       const updatedEvent: OFCEvent = {
         ...event,
         type: 'single',
-        completed: isDone ? task.completed || DateTime.now().toISO() : false
+        completed: isDone ? task.completed || completedAt || DateTime.now().toISO() : false
       };
 
       await PluginState.getProviderRegistry().processProviderUpdates(this.source.id, {

@@ -136,9 +136,17 @@ export async function createLinkedNoteForProvider({
     instanceDate,
     identityInstanceDate,
     templateContentOverride
-  }).finally(() => {
-    linkedNoteCreationPromises.delete(creationKey);
-  });
+  })
+    .then((file) => {
+      const uid = (event.uid || event.id || '').trim();
+      if (file && uid) {
+        linkedNoteIndex.registerLinkedFile(uid, file, identityInstanceDate);
+      }
+      return file;
+    })
+    .finally(() => {
+      linkedNoteCreationPromises.delete(creationKey);
+    });
   linkedNoteCreationPromises.set(creationKey, creationPromise);
   return creationPromise;
 }

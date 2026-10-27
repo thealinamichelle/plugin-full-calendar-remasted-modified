@@ -1,3 +1,4 @@
+import { getNameBasedLinkedNoteFile } from '../../features/linked-notes/linkedNoteResolution';
 import { showNotice } from '../../utils/showNotice';
 
 import { DateTime } from 'luxon';
@@ -120,35 +121,100 @@ export class ViewEventInteractionHandler {
         (isRecurring ? getEventDate(info.event, eventDetails?.event?.timezone) : undefined) ||
         undefined;
 
-      if (info.jsEvent.getModifierState('Control') || info.jsEvent.getModifierState('Meta')) {
-        if (eventDetails) {
-          const { calendarId, event } = eventDetails;
-          const provider = PluginState.getProviderRegistry().getInstance(calendarId);
-          if (provider && 'linkedNoteIndex' in provider && provider.linkedNoteIndex) {
-            const linkedFile = (provider.linkedNoteIndex as LinkedNoteIndex).resolveLinkedFile(
-              event,
-              instanceDate
+      // if (info.jsEvent.getModifierState('Control') || info.jsEvent.getModifierState('Meta')) {
+      //   if (eventDetails) {
+      //     const { calendarId, event } = eventDetails;
+      //     const provider = PluginState.getProviderRegistry().getInstance(calendarId);
+      //     if (provider && 'linkedNoteIndex' in provider && provider.linkedNoteIndex) {
+      //       const linkedFile = (provider.linkedNoteIndex as LinkedNoteIndex).resolveLinkedFile(
+      //         event,
+      //         instanceDate
+      //       );
+      //       if (linkedFile) {
+      //         // Reuse an existing tab if this note is already open.
+      //         await openLinkedFileInExistingLeafOrNew(this.ctx.app, linkedFile);
+      //         return;
+      //       }
+      //       // No existing linked note — if the provider can create one, do so now.
+      //       const linkedNoteProvider = provider as unknown as {
+      //         createLinkedNote?: (event: OFCEvent, instanceDate?: string) => Promise<unknown>;
+      //       };
+      //       if (typeof linkedNoteProvider.createLinkedNote === 'function') {
+      //         const { openOrCreateLinkedNote } = await import('../../utils/eventActions');
+      //         await openOrCreateLinkedNote(this.ctx.plugin, calendarId, event, true, instanceDate);
+      //         return;
+      //       }
+      //     }
+      //   }
+      //   const { openFileForEvent } = await import('../../utils/eventActions');
+      //   await openFileForEvent(PluginState.getCache(), this.ctx.app, info.event.id);
+      //   return;
+      // }
+
+      // Google Tasks have their own local-only note link, unrelated to event locations
+      // or the linked-note index. Cmd/Ctrl-click always opens task settings.
+      if (eventDetails) {
+        const source = PluginState.getProviderRegistry().getSource(eventDetails.calendarId);
+        if (source?.type === 'googletasks') {
+          const { resolveGoogleTaskLocalNote } = await import(
+            '../../features/linked-notes/googleTaskLocalLinks'
+          );
+          if (!info.jsEvent.metaKey && !info.jsEvent.ctrlKey && eventDetails.event.uid) {
+            const file = resolveGoogleTaskLocalNote(
+              this.ctx.app,
+              eventDetails.calendarId,
+              eventDetails.event.uid
             );
-            if (linkedFile) {
-              // Reuse an existing tab if this note is already open.
-              await openLinkedFileInExistingLeafOrNew(this.ctx.app, linkedFile);
-              return;
-            }
-            // No existing linked note — if the provider can create one, do so now.
-            const linkedNoteProvider = provider as unknown as {
-              createLinkedNote?: (event: OFCEvent, instanceDate?: string) => Promise<unknown>;
-            };
-            if (typeof linkedNoteProvider.createLinkedNote === 'function') {
-              const { openOrCreateLinkedNote } = await import('../../utils/eventActions');
-              await openOrCreateLinkedNote(this.ctx.plugin, calendarId, event, true, instanceDate);
+            if (file) {
+              await openLinkedFileInExistingLeafOrNew(this.ctx.app, file);
               return;
             }
           }
+          const { launchGoogleTaskLocalSettingsModal } = await import(
+            '../modals/GoogleTaskLocalSettingsModal'
+          );
+          launchGoogleTaskLocalSettingsModal(
+            this.ctx.app,
+            info.event.id,
+            eventDetails.calendarId,
+            eventDetails.event
+          );
+          return;
         }
-        const { openFileForEvent } = await import('../../utils/eventActions');
-        await openFileForEvent(PluginState.getCache(), this.ctx.app, info.event.id);
-        return;
       }
+
+      // Normal click: open an existing associated note, if available.
+      // Cmd/Ctrl-click: skip note lookup and open the event editor.
+      if (!info.jsEvent.metaKey && !info.jsEvent.ctrlKey && eventDetails) {
+        const { calendarId, event, location } = eventDetails;
+        const provider = PluginState.getProviderRegistry().getInstance(calendarId);
+
+        // Linked notes from remote calendar providers.
+        if (provider && 'linkedNoteIndex' in provider && provider.linkedNoteIndex) {
+          const linkedFile =
+            (await (provider.linkedNoteIndex as LinkedNoteIndex).resolveLinkedFileAfterHydration(
+              event,
+              instanceDate
+            )) ?? getNameBasedLinkedNoteFile(this.ctx.app, event);
+
+          if (linkedFile) {
+            await openLinkedFileInExistingLeafOrNew(this.ctx.app, linkedFile);
+            return;
+          }
+        }
+
+        // Events originating from an existing Obsidian note.
+        if (location?.path) {
+          const sourceFile = this.ctx.app.vault.getFileByPath(location.path);
+
+          if (sourceFile) {
+            await openLinkedFileInExistingLeafOrNew(this.ctx.app, sourceFile);
+            return;
+          }
+        }
+      }
+
+      // end of updat
 
       if (!PluginState.getCache().isEventEditable(info.event.id)) {
         const { launchEventDetailsModal } = await import('../modals/event_modal');
@@ -169,7 +235,9 @@ export class ViewEventInteractionHandler {
           typeof provider.editInProviderUI === 'function'
         ) {
           await (
-            provider as unknown as { editInProviderUI: (id: string) => Promise<void> }
+            provider as unknown as {
+              editInProviderUI: (id: string) => Promise<void>;
+            }
           ).editInProviderUI(info.event.id);
         } else {
           console.error(
@@ -276,10 +344,12 @@ export class ViewEventInteractionHandler {
         (originalEvent.recurringEventId || originalEvent.recurrenceId)
       ) {
         const oldDate = getEventDate(oldEvent, originalEvent.timezone);
-        const modifiedEvent = fromEventApi(newEvent, config, newResource, { forceSingle: true });
+        const modifiedEvent = fromEventApi(newEvent, config, newResource, {
+          forceSingle: true
+        });
         const masterDetails = PluginState.getCache()
           .store.getAllEvents()
-          .find(candidate => {
+          .find((candidate) => {
             if (candidate.event.type !== 'recurring' && candidate.event.type !== 'rrule') {
               return false;
             }

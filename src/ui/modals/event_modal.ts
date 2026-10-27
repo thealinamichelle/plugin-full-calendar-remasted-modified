@@ -1,4 +1,5 @@
 import { showNotice } from '../../utils/showNotice';
+import { launchGoogleTaskLocalSettingsModal } from './GoogleTaskLocalSettingsModal';
 /**
  * @file event_modal.ts
  * @brief Provides functions to launch React-based modals for creating and editing events.
@@ -99,6 +100,16 @@ export function launchEditModal(
   const eventDetails = PluginState.getCache().store.getEventDetails(eventId);
   if (!eventDetails) {
     throw new Error(`Cannot edit event with ID ${eventId} that doesn't exist in the store.`);
+  }
+  const source = PluginState.getProviderRegistry().getSource(eventDetails.calendarId);
+  if (source?.type === 'googletasks') {
+    launchGoogleTaskLocalSettingsModal(
+      plugin.app,
+      eventId,
+      eventDetails.calendarId,
+      eventToEdit
+    );
+    return;
   }
   const calId = eventDetails.calendarId; // This is the RUNTIME ID.
 
