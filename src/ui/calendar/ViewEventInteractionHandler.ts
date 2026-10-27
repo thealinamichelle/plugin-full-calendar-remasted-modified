@@ -1,4 +1,8 @@
 import { getNameBasedLinkedNoteFile } from '../../features/linked-notes/linkedNoteResolution';
+import {
+  eventNoteKey,
+  resolveLocalEventNote
+} from '../../features/linked-notes/localEventNoteLinks';
 import { showNotice } from '../../utils/showNotice';
 
 import { DateTime } from 'luxon';
@@ -151,42 +155,19 @@ export class ViewEventInteractionHandler {
       //   return;
       // }
 
-      // Google Tasks have their own local-only note link, unrelated to event locations
-      // or the linked-note index. Cmd/Ctrl-click always opens task settings.
-      if (eventDetails) {
-        const source = PluginState.getProviderRegistry().getSource(eventDetails.calendarId);
-        if (source?.type === 'googletasks') {
-          const { resolveGoogleTaskLocalNote } = await import(
-            '../../features/linked-notes/googleTaskLocalLinks'
-          );
-          if (!info.jsEvent.metaKey && !info.jsEvent.ctrlKey && eventDetails.event.uid) {
-            const file = resolveGoogleTaskLocalNote(
-              this.ctx.app,
-              eventDetails.calendarId,
-              eventDetails.event.uid
-            );
-            if (file) {
-              await openLinkedFileInExistingLeafOrNew(this.ctx.app, file);
-              return;
-            }
-          }
-          const { launchGoogleTaskLocalSettingsModal } = await import(
-            '../modals/GoogleTaskLocalSettingsModal'
-          );
-          launchGoogleTaskLocalSettingsModal(
-            this.ctx.app,
-            info.event.id,
-            eventDetails.calendarId,
-            eventDetails.event
-          );
-          return;
-        }
-      }
-
       // Normal click: open an existing associated note, if available.
       // Cmd/Ctrl-click: skip note lookup and open the event editor.
       if (!info.jsEvent.metaKey && !info.jsEvent.ctrlKey && eventDetails) {
         const { calendarId, event, location } = eventDetails;
+        // User-selected links always take priority, across any folder or provider.
+        const localFile = resolveLocalEventNote(
+          this.ctx.app,
+          eventNoteKey(calendarId, event, info.event.id)
+        );
+        if (localFile) {
+          await openLinkedFileInExistingLeafOrNew(this.ctx.app, localFile);
+          return;
+        }
         const provider = PluginState.getProviderRegistry().getInstance(calendarId);
 
         // Linked notes from remote calendar providers.
@@ -349,7 +330,7 @@ export class ViewEventInteractionHandler {
         });
         const masterDetails = PluginState.getCache()
           .store.getAllEvents()
-          .find((candidate) => {
+          .find(candidate => {
             if (candidate.event.type !== 'recurring' && candidate.event.type !== 'rrule') {
               return false;
             }

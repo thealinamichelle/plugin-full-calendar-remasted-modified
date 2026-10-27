@@ -304,6 +304,18 @@ export default class FullCalendarPlugin extends Plugin {
         }
       })
     );
+    // Keep local note links valid when a file or entire class folder is moved.
+    // This does not modify events, provider locations, or any remote calendars.
+    this.registerEvent(
+      this.app.vault.on('rename', (file, oldPath) => {
+        if (file instanceof TFile || file instanceof TFolder) {
+          void import('./features/linked-notes/localEventNoteLinks').then(
+            ({ updateLocalEventNotePathsOnRename }) =>
+              updateLocalEventNotePathsOnRename(file, oldPath)
+          );
+        }
+      })
+    );
     this.registerEvent(
       this.app.vault.on('delete', file => {
         if (file instanceof TFile) {

@@ -1,5 +1,4 @@
 import { showNotice } from '../../utils/showNotice';
-import { launchGoogleTaskLocalSettingsModal } from './GoogleTaskLocalSettingsModal';
 /**
  * @file event_modal.ts
  * @brief Provides functions to launch React-based modals for creating and editing events.
@@ -35,6 +34,13 @@ import { openLinkedFileInExistingLeafOrNew } from '../../utils/leafUtils';
 import { t } from '../../features/i18n/i18n';
 import { LinkedNoteIndex } from '../../providers/utils/LinkedNoteIndex';
 import { selectDefaultCalendar } from '../../utils/writableCalendars';
+import {
+  displayNoteLink,
+  eventNoteKey,
+  getLocalEventNotePath,
+  resolveLocalEventNote,
+  saveLocalEventNote
+} from '../../features/linked-notes/localEventNoteLinks';
 
 export function launchCreateModal(
   plugin: FullCalendarPlugin,
@@ -101,17 +107,8 @@ export function launchEditModal(
   if (!eventDetails) {
     throw new Error(`Cannot edit event with ID ${eventId} that doesn't exist in the store.`);
   }
-  const source = PluginState.getProviderRegistry().getSource(eventDetails.calendarId);
-  if (source?.type === 'googletasks') {
-    launchGoogleTaskLocalSettingsModal(
-      plugin.app,
-      eventId,
-      eventDetails.calendarId,
-      eventToEdit
-    );
-    return;
-  }
   const calId = eventDetails.calendarId; // This is the RUNTIME ID.
+  const localNoteKey = eventNoteKey(calId, eventToEdit, eventId);
 
   let location = eventDetails.location;
   const provider = PluginState.getProviderRegistry().getInstance(calId);
@@ -180,6 +177,10 @@ export function launchEditModal(
         enableCategory: PluginState.getSettings().enableAdvancedCategorization,
         enableBackgroundEvents: PluginState.getSettings().enableBackgroundEvents,
         enableReminders: PluginState.getSettings().enableReminders,
+        noteLinkApp: plugin.app,
+        noteLink: displayNoteLink(getLocalEventNotePath(localNoteKey)),
+        saveNoteLink: (value: string) => saveLocalEventNote(plugin.app, localNoteKey, value),
+        closeWithoutEventUpdate: closeModal,
         submit: async (data, calendarIndex) => {
           try {
             const newCalendarSettingsId = calendars[calendarIndex].id;
@@ -203,6 +204,12 @@ export function launchEditModal(
           closeModal();
         },
         open: async () => {
+          const localFile = resolveLocalEventNote(plugin.app, localNoteKey);
+          if (localFile) {
+            await openLinkedFileInExistingLeafOrNew(plugin.app, localFile);
+            closeModal();
+            return;
+          }
           if (location) {
             const file = plugin.app.vault.getAbstractFileByPath(location.path);
             if (file instanceof TFile) {

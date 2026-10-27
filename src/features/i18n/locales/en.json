@@ -1277,6 +1277,12 @@
       }
     },
     "editEvent": {
+      "localNote": {
+        "label": "Obsidian note (local only)",
+        "placeholder": "[[Class/Assignment note]]",
+        "help": "Type [[ to select an existing vault note. The link is stored only in this plugin, never in the calendar event.",
+        "errorNotFound": "Obsidian note not found. Select an existing note."
+      },
       "title": {
         "new": "New Event",
         "edit": "Edit Event"
