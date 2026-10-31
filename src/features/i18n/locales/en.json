@@ -290,6 +290,12 @@
         "label": "Click on a day in month view to create event",
         "description": "Switch off to open day view on click instead."
       },
+      "eventCreationClickMode": {
+        "label": "Create events by clicking empty calendar space",
+        "description": "Choose whether event creation requires a modifier key. Applies to clicks and drag selections.",
+        "click": "Click",
+        "modClick": "Cmd/Ctrl + click"
+      },
       "openDailyNoteOnDateClick": {
         "label": "Open daily note on date click",
         "description": "Left-click on date column headers or Month view day numbers to open or create the daily note."

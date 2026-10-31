@@ -113,7 +113,18 @@ export function renderGeneralSettings(
         await PluginState.saveSettings();
       });
     });
-
+  new Setting(containerEl)
+    .setName(t('settings.general.eventCreationClickMode.label'))
+    .setDesc(t('settings.general.eventCreationClickMode.description'))
+    .addDropdown(dropdown => {
+      dropdown.addOption('click', t('settings.general.eventCreationClickMode.click'));
+      dropdown.addOption('mod-click', t('settings.general.eventCreationClickMode.modClick'));
+      dropdown.setValue(PluginState.getSettings().eventCreationClickMode ?? 'click');
+      dropdown.onChange(async value => {
+        PluginState.getSettings().eventCreationClickMode = value as 'click' | 'mod-click';
+        await PluginState.saveSettings();
+      });
+    });
   new Setting(containerEl)
     .setName(t('settings.general.openDailyNoteOnDateClick.label'))
     .setDesc(

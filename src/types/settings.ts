@@ -175,6 +175,7 @@ export interface FullCalendarSettings {
   };
   timeFormat24h: boolean;
   clickToCreateEventFromMonthView: boolean;
+  eventCreationClickMode?: 'click' | 'mod-click';
   displayTimezone: string | null;
   lastSystemTimezone: string | null;
   enableAdvancedCategorization: boolean;
@@ -307,6 +308,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
   },
   timeFormat24h: false,
   clickToCreateEventFromMonthView: true,
+  eventCreationClickMode: 'click',
   displayTimezone: null,
   lastSystemTimezone: null,
   enableAdvancedCategorization: false,
