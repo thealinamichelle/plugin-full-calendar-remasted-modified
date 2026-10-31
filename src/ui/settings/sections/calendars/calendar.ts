@@ -20,7 +20,7 @@ import type {
   LocaleSingularArg,
   PluginDef
 } from '@fullcalendar/core';
-
+import { PluginState } from '../../../../core/PluginState';
 import { activeDocument, Platform } from 'obsidian';
 import type { RecurringInstanceState } from '../../../../providers/Provider';
 import { createDateNavigation } from '../../../../features/navigation/DateNavigation';
@@ -406,6 +406,18 @@ export async function renderCalendar(
     select:
       select &&
       ((info): void => {
+        if (
+          PluginState.getSettings().eventCreationClickMode === 'mod-click' &&
+          !(
+            info.jsEvent &&
+            'metaKey' in info.jsEvent &&
+            (info.jsEvent.metaKey || info.jsEvent.ctrlKey)
+          )
+        ) {
+          info.view.calendar.unselect();
+          return;
+        }
+
         gestures.cancelSwipeGesture();
         void (async () => {
           await select(info.start, info.end, info.allDay, info.view.type);
@@ -450,6 +462,9 @@ export async function renderCalendar(
     eventResize: modifyEventCallback,
 
     eventDidMount: ({ event, el }) => {
+      if (/\bdue\b/i.test(event.title)) {
+        el.classList.add('fc-event-important');
+      }
       if (event.extendedProps.isShadow) {
         el.addClass('fc-event-shadow');
         return;
@@ -472,11 +487,7 @@ export async function renderCalendar(
         });
       }
       const dot = el.querySelector<HTMLElement>('.fc-daygrid-event-dot');
-      const eventColor =
-        dot?.style.borderColor ||
-        event.backgroundColor ||
-        event.borderColor ||
-        '';
+      const eventColor = dot?.style.borderColor || event.backgroundColor || event.borderColor || '';
       if (eventColor) {
         el.style.setProperty('--event-color', eventColor);
       }
