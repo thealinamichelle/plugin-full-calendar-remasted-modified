@@ -1,5 +1,6 @@
 import { OFCEvent } from '../../types';
 import { DateTime } from 'luxon';
+import { sanitizeTitleForFilename } from '../../providers/utils/noteUtils';
 
 export class TemplateEngine {
   static get DEFAULT_TEMPLATE(): string {
@@ -51,6 +52,7 @@ export class TemplateEngine {
 
     const replacements: Record<string, string> = {
       title: event.title || '',
+      filename: sanitizeTitleForFilename(event.title || ''),
       description: event.description || '',
       date: dateString,
       timeString: timeString,
