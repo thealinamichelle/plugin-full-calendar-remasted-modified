@@ -29,6 +29,9 @@ pnpm -v
 ### | pbcopy
 <!-- copies to clip board -->
 
+### git diff HEAD -- /path
+<!-- shows git changes -->
+
 
 # After setup, these are for changes
 
