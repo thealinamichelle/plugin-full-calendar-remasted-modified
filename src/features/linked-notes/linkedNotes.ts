@@ -136,9 +136,17 @@ export async function createLinkedNoteForProvider({
     instanceDate,
     identityInstanceDate,
     templateContentOverride
-  }).finally(() => {
-    linkedNoteCreationPromises.delete(creationKey);
-  });
+  })
+    .then(file => {
+      const uid = (event.uid || event.id || '').trim();
+      if (file && uid) {
+        linkedNoteIndex.registerLinkedFile(uid, file, identityInstanceDate);
+      }
+      return file;
+    })
+    .finally(() => {
+      linkedNoteCreationPromises.delete(creationKey);
+    });
   linkedNoteCreationPromises.set(creationKey, creationPromise);
   return creationPromise;
 }
@@ -170,7 +178,8 @@ async function createLinkedNoteFile({
 
   const frontmatter: Record<string, unknown> = {
     'fc-event-uid': quotedFrontmatterString(event.uid || event.id || ''),
-    'fc-calendar-id': quotedFrontmatterString(calendarId)
+    'fc-calendar-id': quotedFrontmatterString(calendarId),
+    'prefer-view': 'read'
   };
   if (identityInstanceDate) {
     frontmatter['fc-event-recurrence-id'] = quotedFrontmatterString(identityInstanceDate);
@@ -276,8 +285,30 @@ export async function openOrCreateLinkedNote(
         instanceDate,
         templateContentOverride
       );
+      // if (file) {
+      //   // Newly created notes cannot already be open, so this always opens a fresh tab.
+      //   await openLinkedFileInExistingLeafOrNew(plugin.app, file);
+      // }
       if (file) {
         // Newly created notes cannot already be open, so this always opens a fresh tab.
+        const templater = (
+          plugin.app as App & {
+            plugins?: {
+              plugins?: Record<string, unknown>;
+            };
+          }
+        ).plugins?.plugins?.['templater-obsidian'] as
+          | {
+              templater?: {
+                overwrite_file_commands?: (file: TFile) => Promise<void>;
+              };
+            }
+          | undefined;
+
+        if (templater?.templater?.overwrite_file_commands) {
+          await templater.templater.overwrite_file_commands(file);
+        }
+
         await openLinkedFileInExistingLeafOrNew(plugin.app, file);
       }
     } catch (e) {

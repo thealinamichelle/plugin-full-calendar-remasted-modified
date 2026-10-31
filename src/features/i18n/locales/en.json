@@ -1283,6 +1283,12 @@
       }
     },
     "editEvent": {
+      "localNote": {
+        "label": "Obsidian note (local only)",
+        "placeholder": "[[Class/Assignment note]]",
+        "help": "Type [[ to select an existing vault note. The link is stored only in this plugin, never in the calendar event.",
+        "errorNotFound": "Obsidian note not found. Select an existing note."
+      },
       "title": {
         "new": "New Event",
         "edit": "Edit Event"
@@ -1650,6 +1656,16 @@
         "save": "Save",
         "cancel": "Cancel"
       }
+    },
+    "googleTaskLocal": {
+      "title": "Google Task settings",
+      "noteLink": "Obsidian note",
+      "noteLinkHelp": "Local only. Choose an existing note; moving or renaming it keeps this link. Does not change the Google Task.",
+      "noteLinkPlaceholder": "[[Class/Assignment note]]",
+      "completed": "Completed (syncs to Google Tasks)",
+      "save": "Save",
+      "missingTaskId": "Cannot link a task without a Google Task ID.",
+      "completionFailed": "Could not update Google Task completion."
     }
   },
   "google": {

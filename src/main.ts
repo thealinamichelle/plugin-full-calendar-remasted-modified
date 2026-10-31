@@ -14,6 +14,7 @@ import { showNotice } from './utils/showNotice';
  */
 
 import { PluginState } from './core/PluginState';
+import { updateGoogleTaskLocalLinksAfterRename } from './features/linked-notes/googleTaskLocalLinks';
 import { NotificationManager } from './features/notifications/NotificationManager';
 import { FcrReminderManager } from './features/fcr_reminder/FcrReminderManager';
 import { StatusBarManager } from './features/statusbar/StatusBarManager';
@@ -278,6 +279,13 @@ export default class FullCalendarPlugin extends Plugin {
       return pairs;
     };
 
+    // Keep the local Google Task note links current without touching any task/event.
+    this.registerEvent(
+      this.app.vault.on('rename', (file, oldPath) => {
+        void updateGoogleTaskLocalLinksAfterRename(oldPath, file.path);
+      })
+    );
+
     this.registerEvent(
       this.app.vault.on('rename', (file, oldPath) => {
         if (file instanceof TFile) {
@@ -293,6 +301,18 @@ export default class FullCalendarPlugin extends Plugin {
               await PluginState.getProviderRegistry().handleFileUpdate(childFile);
             }
           })();
+        }
+      })
+    );
+    // Keep local note links valid when a file or entire class folder is moved.
+    // This does not modify events, provider locations, or any remote calendars.
+    this.registerEvent(
+      this.app.vault.on('rename', (file, oldPath) => {
+        if (file instanceof TFile || file instanceof TFolder) {
+          void import('./features/linked-notes/localEventNoteLinks').then(
+            ({ updateLocalEventNotePathsOnRename }) =>
+              updateLocalEventNotePathsOnRename(file, oldPath)
+          );
         }
       })
     );

@@ -1,4 +1,4 @@
-import { App, TFile, EventRef } from 'obsidian';
+import { App, TFile, EventRef, parseYaml } from 'obsidian';
 import { PluginState } from '../../core/PluginState';
 import { OFCEvent, isRecurringEvent } from '../../types';
 
@@ -11,8 +11,15 @@ export class LinkedNoteIndex {
   private hydrationWaiters: (() => void)[] = [];
   private revision = 0;
   private startupHydrationPending = false;
+  private recoveryGeneration = 0;
+  private lastRecoveryGeneration = -1;
+  private recoveryInFlight: Promise<void> | null = null;
 
-  constructor(app: App, calendarId: string) {
+  constructor(
+    app: App,
+    calendarId: string,
+    private readonly searchWholeVault = false
+  ) {
     this.app = app;
     this.calendarId = calendarId;
   }
@@ -22,7 +29,7 @@ export class LinkedNoteIndex {
     const files = this.app.vault.getMarkdownFiles();
 
     for (const file of files) {
-      if (this.isFileInDirectory(file)) {
+      if (this.isFileInScope(file)) {
         if (!this.app.metadataCache.getFileCache(file)) {
           unresolvedFiles.push(file);
         }
@@ -92,6 +99,84 @@ export class LinkedNoteIndex {
       }
     }
     return this.index.get(cleanUid) || null;
+  }
+
+  /** Register a note at creation time, before MetadataCache has processed its YAML. */
+  public registerLinkedFile(eventUid: string, file: TFile, recurrenceId?: string): void {
+    const uid = eventUid.trim();
+    if (!uid || !this.isFileInScope(file)) return;
+
+    const occurrence = recurrenceId?.trim() ?? '';
+    const key = occurrence ? `${uid}::${occurrence}` : uid;
+    this.removePathFromIndex(file.path, false);
+    this.index.set(key, file);
+
+    let files = this.filesByUid.get(uid);
+    if (!files) {
+      files = new Map<string, TFile>();
+      this.filesByUid.set(uid, files);
+    }
+    files.set(occurrence, file);
+  }
+
+  /** Rebuild missing associations from note contents when MetadataCache is incomplete. */
+  private async recoverLinkedFilesFromVault(): Promise<void> {
+    if (this.lastRecoveryGeneration === this.recoveryGeneration) return;
+    if (this.recoveryInFlight) {
+      await this.recoveryInFlight;
+      if (this.lastRecoveryGeneration === this.recoveryGeneration) return;
+    }
+
+    const revision = this.revision;
+    const generation = this.recoveryGeneration;
+    const scan = async (): Promise<void> => {
+      for (const file of this.app.vault.getMarkdownFiles()) {
+        if (revision !== this.revision) return;
+        if (!this.isFileInScope(file)) continue;
+
+        const frontmatter = this.app.metadataCache.getFileCache(file)?.frontmatter;
+        const cachedCalendar = this.frontmatterString(frontmatter?.['fc-calendar-id']);
+        const cachedUid = this.frontmatterString(frontmatter?.['fc-event-uid']);
+        if (cachedCalendar === this.calendarId && cachedUid) {
+          this.registerLinkedFile(
+            cachedUid,
+            file,
+            this.frontmatterString(frontmatter?.['fc-event-recurrence-id']) ?? undefined
+          );
+          continue;
+        }
+
+        // The cache may be absent or stale even when the note's YAML is correct.
+        // Only read note bodies on an index miss, not during normal event rendering.
+        try {
+          const contents = await this.app.vault.cachedRead(file);
+          if (revision !== this.revision) return;
+          const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(contents);
+          if (!match) continue;
+          const parsed = parseYaml(match[1]) as Record<string, unknown> | null;
+          if (!parsed) continue;
+          const calendarId = this.frontmatterString(parsed['fc-calendar-id']);
+          const uid = this.frontmatterString(parsed['fc-event-uid']);
+          if (calendarId !== this.calendarId || !uid) continue;
+          this.registerLinkedFile(
+            uid,
+            file,
+            this.frontmatterString(parsed['fc-event-recurrence-id']) ?? undefined
+          );
+        } catch (error) {
+          console.warn(`[LinkedNoteIndex] Unable to inspect linked note ${file.path}`, error);
+        }
+      }
+      if (revision === this.revision) this.lastRecoveryGeneration = generation;
+    };
+
+    const promise = scan();
+    this.recoveryInFlight = promise;
+    try {
+      await promise;
+    } finally {
+      if (this.recoveryInFlight === promise) this.recoveryInFlight = null;
+    }
   }
 
   /**
@@ -179,54 +264,15 @@ export class LinkedNoteIndex {
     event: OFCEvent,
     instanceDate?: string
   ): Promise<TFile | null> {
-    const uid = (event.uid || event.id || '').trim();
-    if (!uid) {
-      return null;
-    }
+    let file = this.resolveLinkedFile(event, instanceDate);
+    if (file) return file;
 
-    const isRecurring = isRecurringEvent(event);
-    const effectiveRecurrenceId = this.isNameStrategy()
-      ? undefined
-      : instanceDate || event.recurrenceId;
+    await this.waitForStartupHydration();
+    file = this.resolveLinkedFile(event, instanceDate);
+    if (file) return file;
 
-    // 1. If an explicit recurrence ID or instance date is present, check instance-specific key
-    if (effectiveRecurrenceId) {
-      const instanceFile = await this.getFileForEventAfterHydration(uid, effectiveRecurrenceId);
-      if (instanceFile) {
-        return instanceFile;
-      }
-    }
-
-    // 2. Direct lookup for UID (master series note or standard single event)
-    const directFile = await this.getFileForEventAfterHydration(uid, undefined);
-    if (directFile) {
-      return directFile;
-    }
-
-    // 3. For recurrence exceptions with a parent series (e.g. Google Calendar recurringEventId)
-    if (event.recurringEventId && event.recurringEventId.trim() && event.recurringEventId !== uid) {
-      const parentUid = event.recurringEventId.trim();
-      if (effectiveRecurrenceId) {
-        const parentInstanceFile = await this.getFileForEventAfterHydration(
-          parentUid,
-          effectiveRecurrenceId
-        );
-        if (parentInstanceFile) {
-          return parentInstanceFile;
-        }
-      }
-      const parentMasterFile = await this.getFileForEventAfterHydration(parentUid);
-      if (parentMasterFile) {
-        return parentMasterFile;
-      }
-    }
-
-    // 4. For non-recurring single events, fallback to any file indexed under this UID (self-heals legacy notes)
-    if (!isRecurring) {
-      return this.getAnyFileForEvent(uid);
-    }
-
-    return null;
+    await this.recoverLinkedFilesFromVault();
+    return this.resolveLinkedFile(event, instanceDate);
   }
 
   public async getFileForEventAfterHydration(
@@ -239,6 +285,10 @@ export class LinkedNoteIndex {
     }
 
     await this.waitForStartupHydration();
+    const hydratedFile = this.getFileForEvent(eventUid, recurrenceId);
+    if (hydratedFile) return hydratedFile;
+
+    await this.recoverLinkedFilesFromVault();
     return this.getFileForEvent(eventUid, recurrenceId);
   }
 
@@ -286,7 +336,11 @@ export class LinkedNoteIndex {
     return null;
   }
 
-  private isFileInDirectory(file: TFile): boolean {
+  private isFileInScope(file: TFile): boolean {
+    // Google Tasks may link a local note stored in any class folder.
+    // This changes only where links are found; new notes still use the configured directory.
+    if (this.searchWholeVault) return file.extension === 'md';
+
     const dir = this.getDirectory().trim();
     if (!dir) return file.parent?.path === '/' || !file.path.includes('/');
     // Normalize paths
@@ -327,7 +381,7 @@ export class LinkedNoteIndex {
         continue;
       }
 
-      if (revision !== this.revision || !this.isFileInDirectory(file)) {
+      if (revision !== this.revision || !this.isFileInScope(file)) {
         return;
       }
 
@@ -348,7 +402,9 @@ export class LinkedNoteIndex {
     const frontmatter = cache?.frontmatter;
 
     if (!frontmatter) {
-      // Remove any existing mapping for this file
+      // A vault-create or metadata update may arrive before frontmatter is
+      // available. Do not forget a valid association on a transient cache miss.
+      if (!cache) return false;
       return this.removePathFromIndex(file.path, triggerReload);
     }
 
@@ -439,10 +495,11 @@ export class LinkedNoteIndex {
   private registerWatchers(): void {
     const changedRef = this.app.metadataCache.on('changed', file => {
       if (file instanceof TFile) {
-        if (this.isFileInDirectory(file)) {
+        this.recoveryGeneration++;
+        if (this.isFileInScope(file)) {
           this.processFile(file);
         } else {
-          // If the file was in our index but is now moved out of directory, remove it
+          // The file no longer belongs to the configured lookup scope.
           this.removePathFromIndex(file.path);
         }
       }
@@ -450,7 +507,8 @@ export class LinkedNoteIndex {
     this.eventRefs.push(changedRef);
 
     const createRef = this.app.vault.on('create', file => {
-      if (file instanceof TFile && this.isFileInDirectory(file)) {
+      if (file instanceof TFile && this.isFileInScope(file)) {
+        this.recoveryGeneration++;
         this.processFile(file);
       }
     });
@@ -458,6 +516,7 @@ export class LinkedNoteIndex {
 
     const deleteRef = this.app.vault.on('delete', file => {
       if (file instanceof TFile) {
+        this.recoveryGeneration++;
         this.removePathFromIndex(file.path);
       }
     });
@@ -465,13 +524,21 @@ export class LinkedNoteIndex {
 
     const renameRef = this.app.vault.on('rename', (file, oldPath) => {
       if (file instanceof TFile) {
-        // Remove old mapping by treating it as a deleted file
-        const removed = this.removePathFromIndex(oldPath, false);
+        this.recoveryGeneration++;
+        // Obsidian mutates the same TFile on moves, so an existing mapping
+        // already points at its new path. Keep it even if metadata is not
+        // hydrated yet, then refresh the calendar's cached event location.
+        const wasIndexed = Array.from(this.index.values()).some(indexed => indexed === file);
+        if (wasIndexed && this.isFileInScope(file)) {
+          this.triggerReload();
+          return;
+        }
 
-        // Process as new file if it's in the directory now
-        if (this.isFileInDirectory(file)) {
+        const removed = this.removePathFromIndex(oldPath, false);
+        if (this.isFileInScope(file)) {
           this.processFile(file);
-        } else if (removed) {
+        } else if (this.removePathFromIndex(file.path, false) || removed) {
+          // For directory-limited providers, moving out of scope unlinks it.
           this.triggerReload();
         }
       }
@@ -491,6 +558,9 @@ export class LinkedNoteIndex {
     this.eventRefs = [];
     this.index.clear();
     this.filesByUid.clear();
+    this.recoveryGeneration++;
+    this.lastRecoveryGeneration = -1;
+    this.recoveryInFlight = null;
   }
 
   private resolveHydrationWaiters(): void {
