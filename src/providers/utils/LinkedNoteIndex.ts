@@ -303,13 +303,13 @@ export class LinkedNoteIndex {
       return;
     }
 
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       const resolveOnce = () => {
         window.clearTimeout(timeout);
         resolve();
       };
       const timeout = window.setTimeout(() => {
-        this.hydrationWaiters = this.hydrationWaiters.filter((waiter) => waiter !== resolveOnce);
+        this.hydrationWaiters = this.hydrationWaiters.filter(waiter => waiter !== resolveOnce);
         resolve();
       }, timeoutMs);
 
@@ -493,7 +493,7 @@ export class LinkedNoteIndex {
   }
 
   private registerWatchers(): void {
-    const changedRef = this.app.metadataCache.on('changed', (file) => {
+    const changedRef = this.app.metadataCache.on('changed', file => {
       if (file instanceof TFile) {
         this.recoveryGeneration++;
         if (this.isFileInScope(file)) {
@@ -506,7 +506,7 @@ export class LinkedNoteIndex {
     });
     this.eventRefs.push(changedRef);
 
-    const createRef = this.app.vault.on('create', (file) => {
+    const createRef = this.app.vault.on('create', file => {
       if (file instanceof TFile && this.isFileInScope(file)) {
         this.recoveryGeneration++;
         this.processFile(file);
@@ -514,7 +514,7 @@ export class LinkedNoteIndex {
     });
     this.eventRefs.push(createRef);
 
-    const deleteRef = this.app.vault.on('delete', (file) => {
+    const deleteRef = this.app.vault.on('delete', file => {
       if (file instanceof TFile) {
         this.recoveryGeneration++;
         this.removePathFromIndex(file.path);
