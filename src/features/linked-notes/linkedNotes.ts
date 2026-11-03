@@ -285,30 +285,7 @@ export async function openOrCreateLinkedNote(
         instanceDate,
         templateContentOverride
       );
-      // if (file) {
-      //   // Newly created notes cannot already be open, so this always opens a fresh tab.
-      //   await openLinkedFileInExistingLeafOrNew(plugin.app, file);
-      // }
       if (file) {
-        // Newly created notes cannot already be open, so this always opens a fresh tab.
-        const templater = (
-          plugin.app as App & {
-            plugins?: {
-              plugins?: Record<string, unknown>;
-            };
-          }
-        ).plugins?.plugins?.['templater-obsidian'] as
-          | {
-              templater?: {
-                overwrite_file_commands?: (file: TFile) => Promise<void>;
-              };
-            }
-          | undefined;
-
-        if (templater?.templater?.overwrite_file_commands) {
-          await templater.templater.overwrite_file_commands(file);
-        }
-
         await openLinkedFileInExistingLeafOrNew(plugin.app, file);
       }
     } catch (e) {

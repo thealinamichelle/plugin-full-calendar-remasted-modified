@@ -125,41 +125,10 @@ export class ViewEventInteractionHandler {
         (isRecurring ? getEventDate(info.event, eventDetails?.event?.timezone) : undefined) ||
         undefined;
 
-      // if (info.jsEvent.getModifierState('Control') || info.jsEvent.getModifierState('Meta')) {
-      //   if (eventDetails) {
-      //     const { calendarId, event } = eventDetails;
-      //     const provider = PluginState.getProviderRegistry().getInstance(calendarId);
-      //     if (provider && 'linkedNoteIndex' in provider && provider.linkedNoteIndex) {
-      //       const linkedFile = (provider.linkedNoteIndex as LinkedNoteIndex).resolveLinkedFile(
-      //         event,
-      //         instanceDate
-      //       );
-      //       if (linkedFile) {
-      //         // Reuse an existing tab if this note is already open.
-      //         await openLinkedFileInExistingLeafOrNew(this.ctx.app, linkedFile);
-      //         return;
-      //       }
-      //       // No existing linked note — if the provider can create one, do so now.
-      //       const linkedNoteProvider = provider as unknown as {
-      //         createLinkedNote?: (event: OFCEvent, instanceDate?: string) => Promise<unknown>;
-      //       };
-      //       if (typeof linkedNoteProvider.createLinkedNote === 'function') {
-      //         const { openOrCreateLinkedNote } = await import('../../utils/eventActions');
-      //         await openOrCreateLinkedNote(this.ctx.plugin, calendarId, event, true, instanceDate);
-      //         return;
-      //       }
-      //     }
-      //   }
-      //   const { openFileForEvent } = await import('../../utils/eventActions');
-      //   await openFileForEvent(PluginState.getCache(), this.ctx.app, info.event.id);
-      //   return;
-      // }
-
-      // Normal click: open an existing associated note, if available.
-      // Cmd/Ctrl-click: skip note lookup and open the event editor.
+      // Cmd/Ctrl-click edits the event. Ordinary click opens or creates its note.
       if (!info.jsEvent.metaKey && !info.jsEvent.ctrlKey && eventDetails) {
         const { calendarId, event, location } = eventDetails;
-        // User-selected links always take priority, across any folder or provider.
+        // Preserve any previously saved local-only links, even though their editor field is removed.
         const localFile = resolveLocalEventNote(
           this.ctx.app,
           eventNoteKey(calendarId, event, info.event.id)
@@ -187,15 +156,27 @@ export class ViewEventInteractionHandler {
         // Events originating from an existing Obsidian note.
         if (location?.path) {
           const sourceFile = this.ctx.app.vault.getFileByPath(location.path);
-
           if (sourceFile) {
             await openLinkedFileInExistingLeafOrNew(this.ctx.app, sourceFile);
             return;
           }
         }
+
+        // No linked note yet: use the existing provider-specific creation logic.
+        // This handles Google Tasks, Google Calendar, ICS, etc. and preserves
+        // template selection, YAML identity, and duplicate-creation protection.
+        if (
+          provider &&
+          'createLinkedNote' in provider &&
+          typeof provider.createLinkedNote === 'function'
+        ) {
+          const { openOrCreateLinkedNote } = await import('../../utils/eventActions');
+          await openOrCreateLinkedNote(this.ctx.plugin, calendarId, event, true, instanceDate);
+          return;
+        }
       }
 
-      // end of updat
+      // Modifier-click, or a provider that cannot create linked notes, opens its editor/details.
 
       if (!PluginState.getCache().isEventEditable(info.event.id)) {
         const { launchEventDetailsModal } = await import('../modals/event_modal');

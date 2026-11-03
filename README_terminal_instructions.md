@@ -45,3 +45,14 @@ If it finishes without errors, proceed.
 
 
 ## 3. Reload the plugin in Obsidian.
+
+
+##
+git fetch --all --prune
+
+git bundle create ~/Desktop/full-calendar-history.bundle --all
+
+git log --all --branches --remotes \
+  --graph --decorate --date=iso \
+  --pretty=fuller -p \
+  > ~/Desktop/full-calendar-complete-history.txt

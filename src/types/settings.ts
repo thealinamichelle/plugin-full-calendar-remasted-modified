@@ -312,7 +312,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
   },
   timeFormat24h: false,
   clickToCreateEventFromMonthView: true,
-  eventCreationClickMode: 'click',
+  eventCreationClickMode: 'mod-click',
   displayTimezone: null,
   lastSystemTimezone: null,
   enableAdvancedCategorization: false,

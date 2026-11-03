@@ -35,11 +35,8 @@ import { t } from '../../features/i18n/i18n';
 import { LinkedNoteIndex } from '../../providers/utils/LinkedNoteIndex';
 import { selectDefaultCalendar } from '../../utils/writableCalendars';
 import {
-  displayNoteLink,
   eventNoteKey,
-  getLocalEventNotePath,
-  resolveLocalEventNote,
-  saveLocalEventNote
+  resolveLocalEventNote
 } from '../../features/linked-notes/localEventNoteLinks';
 
 export function launchCreateModal(
@@ -177,10 +174,6 @@ export function launchEditModal(
         enableCategory: PluginState.getSettings().enableAdvancedCategorization,
         enableBackgroundEvents: PluginState.getSettings().enableBackgroundEvents,
         enableReminders: PluginState.getSettings().enableReminders,
-        noteLinkApp: plugin.app,
-        noteLink: displayNoteLink(getLocalEventNotePath(localNoteKey)),
-        saveNoteLink: (value: string) => saveLocalEventNote(plugin.app, localNoteKey, value),
-        closeWithoutEventUpdate: closeModal,
         submit: async (data, calendarIndex) => {
           try {
             const newCalendarSettingsId = calendars[calendarIndex].id;

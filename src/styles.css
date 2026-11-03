@@ -2076,12 +2076,4 @@ a.ofc-holiday-doc-link:focus-visible {
 .fc-event.fc-event-important {
   background-color: #b91c1c !important;
   border-color: #b91c1c !important;
-  color: white !important;
-  font-weight: 700 !important;
-}
-
-.fc-event.fc-event-important .fc-event-title,
-.fc-event.fc-event-important .fc-event-time {
-  color: white !important;
-  font-weight: 700 !important;
 }

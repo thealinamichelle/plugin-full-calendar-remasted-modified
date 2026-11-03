@@ -16,10 +16,9 @@ import * as React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { CalendarInfo, OFCEvent } from '../../types';
 import { AutocompleteInput } from '../components/forms/AutocompleteInput';
-import { ObsidianNoteLinkInput } from '../components/forms/ObsidianNoteLinkInput';
 import { parseSubcategoryTitle } from '../../features/category/categoryParser';
 import { t } from '../../features/i18n/i18n';
-import { App, setIcon } from 'obsidian';
+import { setIcon } from 'obsidian';
 import { PluginState } from '../../core/PluginState';
 
 const Icon = ({ name }: { name: string }) => {
@@ -99,10 +98,6 @@ interface EditEventProps {
   enableBackgroundEvents?: boolean;
   enableReminders: boolean; // ADD THIS
   open?: () => Promise<void>;
-  noteLink?: string;
-  noteLinkApp?: App;
-  saveNoteLink?: (value: string) => Promise<void>;
-  closeWithoutEventUpdate?: () => void;
   deleteEvent?: () => Promise<void>;
   onAttemptEditInherited?: () => void;
   mode: 'create' | 'edit';
@@ -166,10 +161,6 @@ export const EditEvent = ({
   initialEvent,
   submit,
   open,
-  noteLink = '',
-  noteLinkApp,
-  saveNoteLink,
-  closeWithoutEventUpdate,
   deleteEvent,
   calendars,
   defaultCalendarIndex,
@@ -208,9 +199,6 @@ export const EditEvent = ({
   const [category, setCategory] = useState(initialEvent?.category || '');
   const [location, setLocation] = useState(initialEvent?.location || '');
   const [description, setDescription] = useState(initialEvent?.description || '');
-  const [localNoteLink, setLocalNoteLink] = useState(noteLink);
-  const [localNoteError, setLocalNoteError] = useState('');
-  const eventFieldsChanged = useRef(false);
   // const [isRecurring, setIsRecurring] = useState(initialEvent?.type === 'recurring' || false);
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>(
     getInitialRecurrenceType(initialEvent)
@@ -405,33 +393,12 @@ export const EditEvent = ({
         : {})
     } as OFCEvent;
 
-    // A note-only edit must never call EventCache.updateEventWithId (or a provider API).
-    if (mode === 'edit' && saveNoteLink) {
-      try {
-        await saveNoteLink(localNoteLink);
-        setLocalNoteError('');
-      } catch (error) {
-        setLocalNoteError(error instanceof Error ? error.message : String(error));
-        return;
-      }
-      if (!eventFieldsChanged.current) {
-        closeWithoutEventUpdate?.();
-        return;
-      }
-    }
     await submit(finalEvent, calendarIndex);
   };
 
   return (
     <div className="full-calendar-edit-modal">
-      <form
-        onSubmit={e => void handleSubmit(e)}
-        onChangeCapture={e => {
-          if (!(e.target as HTMLElement).closest('[data-local-note-link]')) {
-            eventFieldsChanged.current = true;
-          }
-        }}
-      >
+      <form onSubmit={e => void handleSubmit(e)}>
         <div className="modal-header">
           <h2>
             {mode === 'edit' ? t('modals.editEvent.title.edit') : t('modals.editEvent.title.new')}
@@ -680,23 +647,6 @@ export const EditEvent = ({
                 </option>
               </select>
             </div>
-          </div>
-        )}
-
-        {mode === 'edit' && noteLinkApp && saveNoteLink && (
-          <div className="premium-field-full">
-            <div className="setting-item-name">{t('modals.editEvent.localNote.label')}</div>
-            <ObsidianNoteLinkInput
-              app={noteLinkApp}
-              value={localNoteLink}
-              onChange={setLocalNoteLink}
-            />
-            <div className="setting-item-description">{t('modals.editEvent.localNote.help')}</div>
-            {localNoteError && (
-              <div className="setting-item-description" style={{ color: 'var(--text-error)' }}>
-                {localNoteError}
-              </div>
-            )}
           </div>
         )}
 

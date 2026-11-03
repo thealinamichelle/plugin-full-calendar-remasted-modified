@@ -118,4 +118,16 @@ describe('TemplateEngine', () => {
     expect(result).toContain(`**Date**: ${expectedDate}`);
     expect(result).toContain(`**Time**: ${expectedTime}`);
   });
+
+  it('renders a sanitized filename into an Obsidian link with a readable alias', () => {
+    const result = TemplateEngine.render(
+      '[[{{calendarName}}/{{filename}}|{{filename}}]]',
+      { ...mockEvent, title: 'Due: Self-Care Agreement Paper' },
+      '02-Life As Practice Inner Sdp PSY-5310J'
+    );
+    expect(result).toBe(
+      '[[02-Life As Practice Inner Sdp PSY-5310J/Due Self-Care Agreement Paper|Due Self-Care Agreement Paper]]'
+    );
+  });
+
 });

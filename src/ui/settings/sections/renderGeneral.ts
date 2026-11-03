@@ -119,7 +119,7 @@ export function renderGeneralSettings(
     .addDropdown(dropdown => {
       dropdown.addOption('click', t('settings.general.eventCreationClickMode.click'));
       dropdown.addOption('mod-click', t('settings.general.eventCreationClickMode.modClick'));
-      dropdown.setValue(PluginState.getSettings().eventCreationClickMode ?? 'click');
+      dropdown.setValue(PluginState.getSettings().eventCreationClickMode ?? 'mod-click');
       dropdown.onChange(async value => {
         PluginState.getSettings().eventCreationClickMode = value as 'click' | 'mod-click';
         await PluginState.saveSettings();
