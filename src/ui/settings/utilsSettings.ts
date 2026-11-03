@@ -10,6 +10,7 @@ import {
   GoogleAccount,
   DEFAULT_SETTINGS,
   DEFAULT_LINKED_NOTE_TEMPLATE,
+  PREVIOUS_LINKED_NOTE_TEMPLATE,
   LEGACY_LINKED_NOTE_TEMPLATE
 } from '../../types/settings';
 import { CalendarInfo, generateCalendarId } from '../../types/calendar_settings';
@@ -117,8 +118,11 @@ export function migrateAndSanitizeSettings(settings: unknown): {
   const raw = (settings as LegacySettings) || {};
   let newSettings = mergeWithDefaults(DEFAULT_SETTINGS, raw);
 
-  // Upgrade only the old built-in template. Preserve every user-customized template.
-  if (newSettings.linkedNoteTemplate === LEGACY_LINKED_NOTE_TEMPLATE) {
+  // Upgrade only known built-in templates; do not overwrite custom user templates.
+  if (
+    newSettings.linkedNoteTemplate === LEGACY_LINKED_NOTE_TEMPLATE ||
+    newSettings.linkedNoteTemplate === PREVIOUS_LINKED_NOTE_TEMPLATE
+  ) {
     newSettings.linkedNoteTemplate = DEFAULT_LINKED_NOTE_TEMPLATE;
     needsSave = true;
   }

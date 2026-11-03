@@ -183,10 +183,10 @@ describe('linkedNotes: single event identity and rescheduling', () => {
 
     expect(file?.path).toBe('Calendar/Notes/Due Self-Care Agreement Paper.md');
     const content = vaultFiles.get(file!.path)?.content || '';
-    expect(content).toContain('# Due: Self-Care Agreement Paper');
     expect(content).toContain(
-      '[[02-Life As Practice Inner Sdp PSY-5310J/Due Self-Care Agreement Paper|Due Self-Care Agreement Paper]]'
+      '# [[02-Life As Practice Inner Sdp PSY-5310J/Due Self-Care Agreement Paper|Due Self-Care Agreement Paper]]'
     );
+    expect(content).not.toContain('# Due: Self-Care Agreement Paper');
     expect(content).toContain('prefer-view: read');
   });
 

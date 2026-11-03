@@ -26,9 +26,7 @@ In Full Calendar's **Linked Note Settings**, select `Calendar-INBOX` as the note
 The built-in **default** note template is now:
 
 ```markdown
-# {{title}}
-
-[[{{calendarName}}/{{filename}}|{{filename}}]]
+# [[{{calendarName}}/{{filename}}|{{filename}}]]
 ```
 
 New installations use this automatically. Existing installations using the previous built-in default are automatically upgraded; customized saved templates remain unchanged. A blank saved template also uses this default.

@@ -2,6 +2,7 @@ import { migrateAndSanitizeSettings } from './utilsSettings';
 import {
   DEFAULT_SETTINGS,
   DEFAULT_LINKED_NOTE_TEMPLATE,
+  PREVIOUS_LINKED_NOTE_TEMPLATE,
   LEGACY_LINKED_NOTE_TEMPLATE,
   type FullCalendarSettings
 } from '../../types/settings';
@@ -25,7 +26,7 @@ describe('utilsSettings - migrateAndSanitizeSettings', () => {
   it('uses the new note template by default', () => {
     const { settings } = migrateAndSanitizeSettings({ ...DEFAULT_SETTINGS });
     expect(settings.linkedNoteTemplate).toBe(
-      '# {{title}}\n\n[[{{calendarName}}/{{filename}}|{{filename}}]]'
+      '# [[{{calendarName}}/{{filename}}|{{filename}}]]'
     );
   });
 
@@ -33,6 +34,15 @@ describe('utilsSettings - migrateAndSanitizeSettings', () => {
     const { settings, needsSave } = migrateAndSanitizeSettings({
       ...DEFAULT_SETTINGS,
       linkedNoteTemplate: LEGACY_LINKED_NOTE_TEMPLATE
+    });
+    expect(settings.linkedNoteTemplate).toBe(DEFAULT_LINKED_NOTE_TEMPLATE);
+    expect(needsSave).toBe(true);
+  });
+
+  it('migrates the preceding built-in template to the linked heading', () => {
+    const { settings, needsSave } = migrateAndSanitizeSettings({
+      ...DEFAULT_SETTINGS,
+      linkedNoteTemplate: PREVIOUS_LINKED_NOTE_TEMPLATE
     });
     expect(settings.linkedNoteTemplate).toBe(DEFAULT_LINKED_NOTE_TEMPLATE);
     expect(needsSave).toBe(true);

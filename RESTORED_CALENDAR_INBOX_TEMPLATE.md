@@ -1,3 +1,1 @@
-# {{title}}
-
-[[{{calendarName}}/{{filename}}|{{filename}}]]
+# [[{{calendarName}}/{{filename}}|{{filename}}]]

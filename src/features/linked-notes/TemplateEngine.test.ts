@@ -28,7 +28,7 @@ describe('TemplateEngine', () => {
 
   it('renders the default title and sanitized Obsidian link', () => {
     const template = TemplateEngine.DEFAULT_TEMPLATE;
-    expect(template).toBe('# {{title}}\n\n[[{{calendarName}}/{{filename}}|{{filename}}]]');
+    expect(template).toBe('# [[{{calendarName}}/{{filename}}|{{filename}}]]');
 
     const result = TemplateEngine.render(
       template,
@@ -36,8 +36,7 @@ describe('TemplateEngine', () => {
       '02-Life As Practice Inner Sdp PSY-5310J'
     );
     expect(result).toBe(
-      '# Due: Self-Care Agreement Paper\n\n' +
-        '[[02-Life As Practice Inner Sdp PSY-5310J/Due Self-Care Agreement Paper|Due Self-Care Agreement Paper]]'
+      '# [[02-Life As Practice Inner Sdp PSY-5310J/Due Self-Care Agreement Paper|Due Self-Care Agreement Paper]]'
     );
   });
 

@@ -285,9 +285,12 @@ export interface BreakTimerSettings {
   breakDurationSecs: number;
 }
 
-export const DEFAULT_LINKED_NOTE_TEMPLATE = `# {{title}}
+// Previous shipped default. Only migrate settings using this exact built-in value.
+export const PREVIOUS_LINKED_NOTE_TEMPLATE = `# {{title}}
 
 [[{{calendarName}}/{{filename}}|{{filename}}]]`;
+
+export const DEFAULT_LINKED_NOTE_TEMPLATE = `# [[{{calendarName}}/{{filename}}|{{filename}}]]`;
 
 // Previous built-in template, used only to upgrade settings that were never customized.
 export const LEGACY_LINKED_NOTE_TEMPLATE = `# {{title}}
