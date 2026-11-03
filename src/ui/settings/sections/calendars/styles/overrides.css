@@ -1816,15 +1816,39 @@
   inset: auto !important;
 }
 
-a.fc-event.fc-event-draggable.fc-event-resizable.fc-event-start.fc-event-end.fc-event-future.fc-daygrid-event.fc-daygrid-block-event.fc-h-event,
-.ofc-calendar-shell .fc-daygrid-event-harness input[type='checkbox'] {
-  text-wrap: auto;
+/* Keep month-view events inside their day cells, even with very narrow columns. */
+.ofc-calendar-shell .fc .fc-daygrid-block-event,
+.ofc-embedded-calendar-container .fc .fc-daygrid-block-event {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
-.fc-daygrid-block-event .fc-event-title,
-.fc-daygrid-block-event .fc-event-title-container {
+.ofc-calendar-shell .fc .fc-daygrid-block-event .fc-event-main,
+.ofc-calendar-shell .fc .fc-daygrid-block-event .fc-event-main-frame,
+.ofc-calendar-shell .fc .fc-daygrid-block-event .fc-event-title-container,
+.ofc-embedded-calendar-container .fc .fc-daygrid-block-event .fc-event-main,
+.ofc-embedded-calendar-container .fc .fc-daygrid-block-event .fc-event-main-frame,
+.ofc-embedded-calendar-container .fc .fc-daygrid-block-event .fc-event-title-container {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.ofc-calendar-shell .fc .fc-daygrid-block-event .fc-event-title,
+.ofc-embedded-calendar-container .fc .fc-daygrid-block-event .fc-event-title {
+  min-width: 0;
+  max-width: 100%;
   white-space: normal !important;
-  overflow: visible !important;
-  /*text-overflow: clip !important;*/
+  overflow-wrap: anywhere;
+  word-break: normal;
+  overflow: hidden !important;
   max-height: none !important;
+}
+
+/* In day-grid tasks, inline checkbox + text must share a wrapping text line.
+   The original display:flex makes the raw text an unshrinkable anonymous flex item. */
+.ofc-calendar-shell .fc .fc-daygrid-block-event .fc-event-title.ofc-has-checkbox,
+.ofc-embedded-calendar-container .fc .fc-daygrid-block-event .fc-event-title.ofc-has-checkbox {
+  display: block;
 }
