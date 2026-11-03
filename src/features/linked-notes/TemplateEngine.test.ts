@@ -26,19 +26,19 @@ describe('TemplateEngine', () => {
     location: 'Meeting Room A'
   };
 
-  it('should render default template with all placeholders replaced', () => {
+  it('renders the default title and sanitized Obsidian link', () => {
     const template = TemplateEngine.DEFAULT_TEMPLATE;
-    const result = TemplateEngine.render(template, mockEventWithLocation, 'Work Calendar');
+    expect(template).toBe('# {{title}}\n\n[[{{calendarName}}/{{filename}}|{{filename}}]]');
 
-    const expectedDate = DateTime.fromISO('2026-05-20').toLocaleString(DateTime.DATE_HUGE);
-    const expectedTime = `${DateTime.fromFormat('10:00', 'HH:mm').toLocaleString(DateTime.TIME_SIMPLE)} - ${DateTime.fromFormat('11:30', 'HH:mm').toLocaleString(DateTime.TIME_SIMPLE)}`;
-
-    expect(result).toContain('# Brainstorming Session');
-    expect(result).toContain(`**Date**: ${expectedDate}`);
-    expect(result).toContain(`**Time**: ${expectedTime}`);
-    expect(result).toContain('**Location**: Meeting Room A');
-    expect(result).toContain('**Calendar**: Work Calendar');
-    expect(result).toContain('Discuss next major features and UI remastering.');
+    const result = TemplateEngine.render(
+      template,
+      { ...mockEventWithLocation, title: 'Due: Self-Care Agreement Paper' },
+      '02-Life As Practice Inner Sdp PSY-5310J'
+    );
+    expect(result).toBe(
+      '# Due: Self-Care Agreement Paper\n\n' +
+        '[[02-Life As Practice Inner Sdp PSY-5310J/Due Self-Care Agreement Paper|Due Self-Care Agreement Paper]]'
+    );
   });
 
   it('should support spaces inside double braces and case insensitivity', () => {

@@ -285,6 +285,24 @@ export interface BreakTimerSettings {
   breakDurationSecs: number;
 }
 
+export const DEFAULT_LINKED_NOTE_TEMPLATE = `# {{title}}
+
+[[{{calendarName}}/{{filename}}|{{filename}}]]`;
+
+// Previous built-in template, used only to upgrade settings that were never customized.
+export const LEGACY_LINKED_NOTE_TEMPLATE = `# {{title}}
+
+**Date**: {{date}}
+**Time**: {{timeString}}
+**Location**: {{location}}
+**Calendar**: {{calendarName}}
+
+## Description
+{{description}}
+
+## Notes
+- `;
+
 export const DEFAULT_SETTINGS: FullCalendarSettings = {
   sidebarConfig: {
     enabled: true,
@@ -401,8 +419,7 @@ export const DEFAULT_SETTINGS: FullCalendarSettings = {
   weatherHide: false,
   weatherInputMode: 'city',
   weatherUnit: 'C',
-  linkedNoteTemplate:
-    '# {{title}}\n\n**Date**: {{date}}\n**Time**: {{timeString}}\n**Location**: {{location}}\n**Calendar**: {{calendarName}}\n\n## Description\n{{description}}\n\n## Notes\n- ',
+  linkedNoteTemplate: DEFAULT_LINKED_NOTE_TEMPLATE,
   enableLinkedNoteTemplatesPreset: false,
   linkedNoteTemplatesPresets: [],
   openDailyNoteOnDateClick: false,

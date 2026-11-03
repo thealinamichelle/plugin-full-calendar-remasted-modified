@@ -165,6 +165,31 @@ describe('linkedNotes: single event identity and rescheduling', () => {
     expect(stored?.content).not.toContain('fc-event-recurrence-id');
   });
 
+  it('uses the new default template for a note when no template is configured', async () => {
+    const file = await createLinkedNoteForProvider({
+      app: mockApp,
+      event: {
+        title: 'Due: Self-Care Agreement Paper',
+        type: 'single',
+        date: '2026-09-19',
+        endDate: null,
+        allDay: true,
+        uid: 'due-task-1'
+      },
+      calendarId,
+      calendarName: '02-Life As Practice Inner Sdp PSY-5310J',
+      linkedNoteIndex: mockLinkedNoteIndex
+    });
+
+    expect(file?.path).toBe('Calendar/Notes/Due Self-Care Agreement Paper.md');
+    const content = vaultFiles.get(file!.path)?.content || '';
+    expect(content).toContain('# Due: Self-Care Agreement Paper');
+    expect(content).toContain(
+      '[[02-Life As Practice Inner Sdp PSY-5310J/Due Self-Care Agreement Paper|Due Self-Care Agreement Paper]]'
+    );
+    expect(content).toContain('prefer-view: read');
+  });
+
   it('maintains connection when a single event is rescheduled to a new day', async () => {
     const eventDay1: OFCEvent = {
       title: 'Project Kickoff',

@@ -1,5 +1,10 @@
 import { migrateAndSanitizeSettings } from './utilsSettings';
-import { DEFAULT_SETTINGS, type FullCalendarSettings } from '../../types/settings';
+import {
+  DEFAULT_SETTINGS,
+  DEFAULT_LINKED_NOTE_TEMPLATE,
+  LEGACY_LINKED_NOTE_TEMPLATE,
+  type FullCalendarSettings
+} from '../../types/settings';
 
 // Mock Obsidian modules that may be imported transitively
 jest.mock('obsidian', () => ({
@@ -16,6 +21,32 @@ jest.mock('../../features/i18n/i18n', () => ({
 }));
 
 describe('utilsSettings - migrateAndSanitizeSettings', () => {
+
+  it('uses the new note template by default', () => {
+    const { settings } = migrateAndSanitizeSettings({ ...DEFAULT_SETTINGS });
+    expect(settings.linkedNoteTemplate).toBe(
+      '# {{title}}\n\n[[{{calendarName}}/{{filename}}|{{filename}}]]'
+    );
+  });
+
+  it('updates the previously shipped built-in note template', () => {
+    const { settings, needsSave } = migrateAndSanitizeSettings({
+      ...DEFAULT_SETTINGS,
+      linkedNoteTemplate: LEGACY_LINKED_NOTE_TEMPLATE
+    });
+    expect(settings.linkedNoteTemplate).toBe(DEFAULT_LINKED_NOTE_TEMPLATE);
+    expect(needsSave).toBe(true);
+  });
+
+  it('preserves a customized note template', () => {
+    const customTemplate = '# Custom\n\n{{description}}';
+    const { settings } = migrateAndSanitizeSettings({
+      ...DEFAULT_SETTINGS,
+      linkedNoteTemplate: customTemplate
+    });
+    expect(settings.linkedNoteTemplate).toBe(customTemplate);
+  });
+
   it('should preserve existing milestone settings', () => {
     const rawSettings = {
       ...DEFAULT_SETTINGS,

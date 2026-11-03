@@ -23,13 +23,15 @@ After a successful build, install the generated `main.js`, `styles.css`, and `ma
 
 In Full Calendar's **Linked Note Settings**, select `Calendar-INBOX` as the notes directory.
 
-The original user-saved template isn't in Git history. If you want the reconstructed link template, paste the content of `RESTORED_CALENDAR_INBOX_TEMPLATE.md` into the **Linked note template** field:
+The built-in **default** note template is now:
 
 ```markdown
 # {{title}}
 
 [[{{calendarName}}/{{filename}}|{{filename}}]]
 ```
+
+New installations use this automatically. Existing installations using the previous built-in default are automatically upgraded; customized saved templates remain unchanged. A blank saved template also uses this default.
 
 `{{filename}}` strips invalid filename characters, including `:`. `{{calendarName}}` must actually match the folder containing the note you intend to link to; change that part if your target folder is different. The plugin continues to add `fc-event-uid`, `fc-calendar-id`, and `prefer-view: read` as YAML.
 

@@ -1,21 +1,11 @@
 import { OFCEvent } from '../../types';
 import { DateTime } from 'luxon';
 import { sanitizeTitleForFilename } from '../../providers/utils/noteUtils';
+import { DEFAULT_LINKED_NOTE_TEMPLATE } from '../../types/settings';
 
 export class TemplateEngine {
   static get DEFAULT_TEMPLATE(): string {
-    return `# {{title}}
-
-**Date**: {{date}}
-**Time**: {{timeString}}
-**Location**: {{location}}
-**Calendar**: {{calendarName}}
-
-## Description
-{{description}}
-
-## Notes
-- `;
+    return DEFAULT_LINKED_NOTE_TEMPLATE;
   }
 
   static render(

@@ -5,7 +5,13 @@ import { showNotice } from '../../utils/showNotice';
  * @license See LICENSE.md
  */
 
-import { FullCalendarSettings, GoogleAccount, DEFAULT_SETTINGS } from '../../types/settings';
+import {
+  FullCalendarSettings,
+  GoogleAccount,
+  DEFAULT_SETTINGS,
+  DEFAULT_LINKED_NOTE_TEMPLATE,
+  LEGACY_LINKED_NOTE_TEMPLATE
+} from '../../types/settings';
 import { CalendarInfo, generateCalendarId } from '../../types/calendar_settings';
 import { t } from '../../features/i18n/i18n';
 
@@ -110,6 +116,12 @@ export function migrateAndSanitizeSettings(settings: unknown): {
   let needsSave = false;
   const raw = (settings as LegacySettings) || {};
   let newSettings = mergeWithDefaults(DEFAULT_SETTINGS, raw);
+
+  // Upgrade only the old built-in template. Preserve every user-customized template.
+  if (newSettings.linkedNoteTemplate === LEGACY_LINKED_NOTE_TEMPLATE) {
+    newSettings.linkedNoteTemplate = DEFAULT_LINKED_NOTE_TEMPLATE;
+    needsSave = true;
+  }
 
   // Migrate the initial Journals integration, which used a Daily Note source
   // discriminator plus a provider flag, to the first-class Journals source type.
